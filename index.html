@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f5f3ee">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Rekod Kesihatan">
+<meta name="robots" content="noindex,nofollow">
+<title>Rekod Kesihatan Keluarga</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f3ee;--card:#fff;--ink:#1f2a2e;--muted:#6b7579;--line:#e7e3da;
+  --teal:#0f8f7e;--coral:#e0683f;--red:#d6303a;--redbg:#fdecec;--amber:#c98a12;--amberbg:#fdf4e1;
+  --radius:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:15px;line-height:1.45}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,select,textarea{font:inherit;color:inherit}
+.app{max-width:640px;margin:0 auto;padding:0 14px 120px;min-height:100vh}
+header{position:sticky;top:0;z-index:20;background:var(--bg);padding:14px 0 10px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.top h1{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.top h1 small{display:block;font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0}
+.sync{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;background:#bbb}
+.dot.on{background:#27a65a}.dot.local{background:var(--amber)}
+.chips{display:flex;gap:8px;margin-top:12px;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{padding:8px 16px;border-radius:999px;background:#fff;border:1.5px solid var(--line);font-weight:600;font-size:14px;white-space:nowrap;display:flex;align-items:center;gap:7px}
+.chip .av{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:800}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.banner{background:var(--amberbg);color:#7a5408;border-radius:12px;padding:10px 12px;font-size:12.5px;margin:6px 0 4px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:22px 2px 10px;display:flex;justify-content:space-between;align-items:center}
+h2 button{font-size:13px;text-transform:none;letter-spacing:0;color:var(--teal);font-weight:700}
+.card{background:var(--card);border-radius:var(--radius);padding:14px;box-shadow:0 1px 2px rgba(0,0,0,.04);border:1px solid var(--line)}
+.list{display:flex;flex-direction:column;gap:10px}
+.empty{text-align:center;color:var(--muted);padding:26px 14px;font-size:14px;background:#fff;border:1.5px dashed var(--line);border-radius:var(--radius)}
+.empty b{display:block;font-size:28px;margin-bottom:6px}
+
+/* person summary */
+.pcards{display:grid;grid-template-columns:1fr;gap:12px}
+.pcard{border-radius:20px;padding:16px;color:#fff;position:relative;overflow:hidden}
+.pcard .nm{font-size:22px;font-weight:800;letter-spacing:-.4px}
+.pcard .hs{font-size:13px;opacity:.9;margin-top:2px}
+.pcard .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.pcard .st{background:rgba(255,255,255,.17);border-radius:12px;padding:9px 10px}
+.pcard .st b{display:block;font-size:17px;font-weight:800;line-height:1.2}
+.pcard .st span{font-size:11px;opacity:.92}
+.pcard .bubble{position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.1)}
+
+/* appointment item */
+.item{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%}
+.datebox{flex:0 0 56px;border-radius:12px;text-align:center;padding:7px 0;background:#f1efe9}
+.datebox .d{font-size:22px;font-weight:800;line-height:1}
+.datebox .m{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.datebox .w{font-size:10px;color:var(--muted)}
+.item .body{flex:1;min-width:0}
+.item .t{font-weight:700;font-size:15px}
+.item .s{color:var(--muted);font-size:13px;margin-top:2px}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;margin-top:7px;margin-right:4px}
+.tag.p{color:#fff}
+.tag.soon{background:#e5f4f1;color:var(--teal)}
+.tag.today{background:var(--redbg);color:var(--red)}
+.tag.done{background:#eee;color:#777}
+.tag.warn{background:var(--amberbg);color:#8a5d06}
+.tag.sev3{background:var(--redbg);color:var(--red)}
+.tag.sev2{background:var(--amberbg);color:#8a5d06}
+.tag.sev1{background:#eaf6ee;color:#23804a}
+.past{opacity:.6}
+.icon{flex:0 0 44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px}
+.ic-med{background:#eaf2fd}.ic-sym{background:var(--amberbg)}.ic-sz{background:var(--redbg)}
+.inactive{opacity:.5}
+
+/* segmented */
+.seg{display:flex;background:#ebe7de;border-radius:12px;padding:3px;gap:3px;margin-top:4px}
+.seg button{flex:1;padding:8px;border-radius:9px;font-weight:600;font-size:13px;color:var(--muted)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+/* nav */
+nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+nav .in{max-width:640px;margin:0 auto;display:flex}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:11px;font-weight:600;color:var(--muted);padding:5px 0}
+nav button .e{font-size:21px;filter:grayscale(1);opacity:.6}
+nav button.on{color:var(--ink)}
+nav button.on .e{filter:none;opacity:1}
+.fab{position:fixed;z-index:31;right:max(16px,calc(50vw - 304px));bottom:calc(76px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+.fab button{border-radius:999px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.fab .sz{background:var(--red);color:#fff;padding:13px 18px;font-size:15px;display:flex;gap:7px;align-items:center}
+.fab .add{background:var(--ink);color:#fff;width:52px;height:52px;font-size:28px;line-height:1}
+
+/* sheet */
+.ov{position:fixed;inset:0;z-index:50;background:rgba(20,25,28,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom))}
+.sheet h3{font-size:18px;font-weight:800;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.sheet h3 button{font-size:24px;color:var(--muted);line-height:1}
+.f{margin-bottom:12px}
+.f label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:5px}
+.f input,.f select,.f textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:11px;background:#fbfaf7;font-size:15px}
+.f textarea{min-height:72px;resize:vertical}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--teal);background:#fff}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btns{display:flex;gap:10px;margin-top:16px}
+.btn{flex:1;padding:13px;border-radius:12px;font-weight:700;font-size:15px;background:#efece5}
+.btn.pri{background:var(--ink);color:#fff}
+.btn.del{flex:0 0 auto;color:var(--red);background:var(--redbg);padding:13px 16px}
+.btn.red{background:var(--red);color:#fff}
+.pick{display:grid;gap:10px}
+.pick button{padding:20px;border-radius:16px;color:#fff;font-size:20px;font-weight:800}
+
+/* emergency */
+.em{position:fixed;inset:0;z-index:60;background:#fff;overflow:auto}
+.em .wrap{max-width:640px;margin:0 auto;padding:18px 16px 30px}
+.em .hd{display:flex;justify-content:space-between;align-items:center}
+.em .hd b{font-size:15px;color:var(--red);font-weight:800;letter-spacing:.5px}
+.timer{text-align:center;margin:14px 0 6px;font-size:76px;font-weight:800;letter-spacing:-2px;font-variant-numeric:tabular-nums;line-height:1}
+.timer.over{color:var(--red)}
+.tsub{text-align:center;color:var(--muted);font-size:13px}
+.alert5{background:var(--red);color:#fff;border-radius:14px;padding:12px 14px;font-weight:700;margin-top:12px;text-align:center}
+.alert5 a{color:#fff}
+.steps{counter-reset:s;margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.steps div{counter-increment:s;display:flex;gap:10px;align-items:flex-start;background:#f7f5f0;border-radius:12px;padding:10px 12px;font-size:14px}
+.steps div:before{content:counter(s);flex:0 0 24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:800}
+.plan{margin-top:14px;border:2px solid var(--red);border-radius:14px;padding:12px 14px}
+.plan h4{font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--red);margin-bottom:6px}
+.plan p{font-size:14px;margin-top:4px;white-space:pre-wrap}
+.plan p b{font-weight:700}
+.call{display:block;text-align:center;margin-top:14px;padding:14px;border-radius:14px;background:var(--redbg);color:var(--red);font-weight:800;font-size:17px;text-decoration:none}
+
+/* profile */
+.prow{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f0ede6;font-size:14px}
+.prow:last-child{border:0}
+.prow span{flex:0 0 42%;color:var(--muted);font-size:13px}
+.prow b{font-weight:600;flex:1;white-space:pre-wrap;word-break:break-word}
+.phead{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.phead .av{width:44px;height:44px;border-radius:14px;color:#fff;display:grid;place-items:center;font-weight:800;font-size:19px}
+.phead .nm{font-weight:800;font-size:18px;flex:1}
+.phead button{color:var(--teal);font-weight:700;font-size:14px}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tools button{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;text-align:left;font-weight:700;font-size:14px}
+.tools button span{display:block;font-size:22px;margin-bottom:4px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(140px + env(safe-area-inset-bottom));background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;font-weight:600;z-index:80;max-width:90vw;text-align:center}
+.note{font-size:12px;color:var(--muted);margin-top:16px;text-align:center;padding:0 10px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="top">
+      <h1>Rekod Kesihatan<small>Keluarga kita</small></h1>
+      <div class="sync"><span class="dot" id="dot"></span><span id="syncTxt">Memuatkan…</span></div>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div id="bannerSlot"></div>
+  </header>
+  <main id="main"></main>
+</div>
+<div class="fab">
+  <button class="sz" id="btnSawan">⚡ SAWAN</button>
+  <button class="add" id="btnAdd" aria-label="Tambah">+</button>
+</div>
+<nav><div class="in" id="nav"></div></nav>
+
+<script>
+(() => {
+const LS_KEY = 'rekodKesihatanKeluarga_v1';
+const PALETTE = ['#0f8f7e','#e0683f','#5b5bd6','#c2417a','#2f7fc1','#8a6d1f'];
+const DEFAULT_PEOPLE = [{id:'ayyen',nama:'Ayyen',warna:PALETTE[0],urutan:1,sawanAktif:'Ya'},{id:'danial',nama:'Danial',warna:PALETTE[1],urutan:2,sawanAktif:'Tidak',jabatanDefault:'ENT'}];
+const BULAN=['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogo','Sep','Okt','Nov','Dis'];
+const HARI=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
+
+const S = { profiles:{}, items:{}, person:'semua', view:'utama', logF:'semua', mode:'loading' };
+const db = null;
+
+/* ---------- helpers ---------- */
+function el(tag, props, ...kids){
+  const e=document.createElement(tag);
+  for(const [k,v] of Object.entries(props||{})){
+    if(v==null||v===false) continue;
+    if(k==='class') e.className=v;
+    else if(k==='style') e.style.cssText=v;
+    else if(k.startsWith('on')) e.addEventListener(k.slice(2),v);
+    else e.setAttribute(k, v===true?'':v);
+  }
+  for(const c of kids.flat()){ if(c==null||c===false) continue; e.append(c.nodeType?c:document.createTextNode(String(c))); }
+  return e;
+}
+const pad=n=>String(n).padStart(2,'0');
+const todayStr=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
+const nowTime=()=>{const d=new Date();return `${pad(d.getHours())}:${pad(d.getMinutes())}`};
+const pD=s=>new Date(s+'T00:00:00');
+const daysFrom=s=>Math.round((pD(s)-pD(todayStr()))/864e5);
+const rel=n=>n===0?'Hari ini':n===1?'Esok':n===-1?'Semalam':n>0?`Dalam ${n} hari`:`${-n} hari lalu`;
+const fmtD=s=>{if(!s)return'';const d=pD(s);return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`};
+const fmtT=t=>{if(!t)return'';let [h,m]=t.split(':').map(Number);const ap=h<12?'pg':(h<14?'tgh':(h<19?'ptg':'mlm'));const h12=h%12||12;return `${h12}:${pad(m)} ${ap}`};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const initial=n=>(n||'?').trim().charAt(0).toUpperCase();
+
+function people(){
+  const map={};
+  DEFAULT_PEOPLE.forEach(p=>map[p.id]={...p});
+  Object.values(S.profiles).forEach(p=>{ map[p.id]={...(map[p.id]||{}),...p}; });
+  return Object.values(map).sort((a,b)=>(a.urutan||99)-(b.urutan||99));
+}
+const hasSz=p=>p&&p.sawanAktif==='Ya';
+const szPeople=()=>people().filter(hasSz);
+const P=id=>people().find(p=>p.id===id)||{id,nama:id,warna:'#888'};
+const items=kind=>Object.values(S.items).filter(i=>i.kind===kind && (S.person==='semua'||i.person===S.person));
+const itemsFor=(kind,pid)=>Object.values(S.items).filter(i=>i.kind===kind && i.person===pid);
+
+function toast(msg){const t=el('div',{class:'toast'},msg);document.body.append(t);setTimeout(()=>t.remove(),2600);}
+
+/* ---------- storage ---------- */
+function saveLocal(){ try{localStorage.setItem(LS_KEY,JSON.stringify({profiles:S.profiles,items:S.items}));}catch(e){} }
+function loadLocal(){ try{const d=JSON.parse(localStorage.getItem(LS_KEY)||'{}');S.profiles=d.profiles||{};S.items=d.items||{};}catch(e){} }
+
+async function putItem(obj){
+  S.items[obj.id]=obj; render();
+  if(db){ try{ await db.collection('rekod').doc(obj.id).set(obj); }catch(e){ dbErr(e); } }
+  else saveLocal();
+}
+async function delItem(id){
+  delete S.items[id]; render();
+  if(db){ try{ await db.collection('rekod').doc(id).delete(); }catch(e){ dbErr(e); } }
+  else saveLocal();
+}
+async function putProfile(obj){
+  S.profiles[obj.id]=obj; render();
+  if(db){ try{ await db.collection('profil').doc(obj.id).set(obj); }catch(e){ dbErr(e); } }
+  else saveLocal();
+}
+function dbErr(e){
+  const c=e&&e.code;
+  if(c==='quota_exceeded') toast('Ruang simpanan penuh. Padam rekod lama dahulu.');
+  else if(c==='invalid_argument') toast('Anda tiada kebenaran untuk menyimpan di sini.');
+  else toast('Gagal simpan. Cuba lagi sebentar.');
+}
+function setSync(mode,txt){
+  S.mode=mode; document.getElementById('dot').className='dot '+(mode==='db'?'on':mode==='local'?'local':'');
+  document.getElementById('syncTxt').textContent=txt;
+  const slot=document.getElementById('bannerSlot'); slot.textContent='';
+  if(mode==='local') slot.append(el('div',{class:'banner'},'Disimpan dalam telefon/peranti ini sahaja. Buka melalui akaun Claude untuk simpanan selamat yang sama di semua peranti.'));
+}
+
+const LB_KEY='rekodKesihatan_lastBackup';
+function lastBackup(){ try{return Number(localStorage.getItem(LB_KEY))||0;}catch(e){return 0;} }
+function backupBanner(){
+  const slot=document.getElementById('bannerSlot'); slot.textContent='';
+  const n=Object.keys(S.items).length+Object.keys(S.profiles).length; if(!n) return;
+  const lb=lastBackup(); const d=lb?Math.floor((Date.now()-lb)/864e5):null;
+  if(d===null||d>=14) slot.append(el('button',{class:'banner',style:'width:100%;text-align:left',onclick:doBackup},
+    (d===null?'Belum ada sandaran. ':'Sandaran terakhir '+d+' hari lalu. ')+'Tekan untuk simpan sandaran sekarang 💾'));
+}
+function setSync(mode,txt){ document.getElementById('dot').className='dot on'; document.getElementById('syncTxt').textContent=txt; }
+function init(){
+  loadLocal(); setSync('local','Telefon ini');
+  try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+  render();
+}
+async function doBackup(){
+  const data={app:'rekod-kesihatan-keluarga',versi:1,dieksport:new Date().toISOString(),profiles:S.profiles,items:S.items};
+  const json=JSON.stringify(data,null,1); const name='sandaran-rekod-kesihatan-'+todayStr()+'.json';
+  const mark=()=>{ try{localStorage.setItem(LB_KEY,String(Date.now()));}catch(e){} render(); };
+  try{
+    const file=new File([json],name,{type:'application/json'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:'Sandaran Rekod Kesihatan'}); mark(); toast('Sandaran dikongsi ✓'); return; }
+  }catch(e){ if(e&&e.name==='AbortError') return; }
+  const url=URL.createObjectURL(new Blob([json],{type:'application/json'}));
+  const a=el('a',{href:url,download:name}); document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000);
+  mark(); toast('Fail sandaran dimuat turun ✓');
+}
+function doRestore(){
+  const inp=el('input',{type:'file',accept:'.json,application/json',style:'display:none'});
+  inp.addEventListener('change',()=>{
+    const f=inp.files[0]; if(!f) return; const rd=new FileReader();
+    rd.onload=()=>{ try{
+      const d=JSON.parse(rd.result); if(!d||d.app!=='rekod-kesihatan-keluarga'||typeof d.items!=='object') throw 0;
+      const n=Object.keys(d.items||{}).length;
+      confirmBox(`Pulihkan sandaran (${n} rekod, ${fmtD((d.dieksport||'').slice(0,10))})? Data sekarang dalam telefon ini akan diganti.`,'Pulihkan',()=>{
+        S.profiles=d.profiles||{}; S.items=d.items||{}; saveLocal(); render(); toast('Data dipulihkan ✓'); });
+    }catch(e){ toast('Fail ini bukan sandaran yang sah.'); } };
+    rd.readAsText(f);
+  });
+  document.body.append(inp); inp.click(); setTimeout(()=>inp.remove(),60000);
+}
+
+/* ---------- field definitions ---------- */
+const FIELDS = {
+  temujanji: { title:'Temujanji', fields:[
+    ['tarikh','Tarikh','date',{req:1,half:1}],['masa','Masa','time',{half:1}],
+    ['hospital','Hospital / Klinik','text'],
+    ['jabatan','Jabatan / Klinik pakar','text',{half:1}],['doktor','Doktor','text',{half:1}],
+    ['tujuan','Tujuan temujanji','text',{ph:'cth: Susulan neuro, ujian darah, EEG'}],
+    ['bawa','Perlu bawa / persediaan','textarea',{ph:'cth: Kad temujanji, buku rekod, ubat, puasa'}],
+    ['status','Status','select',{opts:['Akan datang','Selesai','Ditunda','Batal']}],
+    ['nota','Nota / keputusan doktor','textarea']
+  ]},
+  ubat: { title:'Ubat', fields:[
+    ['nama','Nama ubat','text',{req:1}],
+    ['dos','Dos','text',{half:1,ph:'cth: 5ml / 1 biji'}],['kekerapan','Kekerapan','select',{half:1,opts:['1x sehari','2x sehari','3x sehari','4x sehari','Bila perlu','Lain-lain']}],
+    ['masaMakan','Masa makan','text',{ph:'cth: 8pg, 8mlm'}],
+    ['tujuan','Untuk apa','text',{ph:'cth: kawal sawan, demam'}],
+    ['mula','Mula','date',{half:1}],['tamat','Tamat','date',{half:1}],
+    ['ambilSeterusnya','Tarikh ambil ubat seterusnya','date',{half:1}],['aktif','Masih diambil?','select',{half:1,opts:['Ya','Tidak']}],
+    ['nota','Nota','textarea']
+  ]},
+  simptom: { title:'Simptom', fields:[
+    ['tarikh','Tarikh','date',{req:1,half:1}],['masa','Masa','time',{half:1}],
+    ['simptom','Simptom','text',{req:1,ph:'cth: demam, muntah, lemah, sakit kepala'}],
+    ['tahap','Tahap','select',{half:1,opts:['Ringan','Sederhana','Teruk']}],['suhu','Suhu (°C)','text',{half:1,ph:'cth: 38.2'}],
+    ['tindakan','Tindakan diambil','textarea',{ph:'cth: beri ubat demam, tuam, ke klinik'}],
+    ['nota','Nota','textarea']
+  ]},
+  sawan: { title:'Rekod Sawan', fields:[
+    ['tarikh','Tarikh','date',{req:1,half:1}],['masa','Masa mula','time',{half:1}],
+    ['tempoh','Tempoh','text',{half:1,ph:'cth: 2 min 30 saat'}],['hospital2','Dibawa ke hospital?','select',{half:1,opts:['Tidak','Ya']}],
+    ['jenis','Apa yang berlaku','textarea',{ph:'cth: mata ke atas, kejang tangan kiri, tak respon'}],
+    ['pencetus','Kemungkinan pencetus','text',{ph:'cth: demam, kurang tidur, terlepas ubat'}],
+    ['ubatDiberi','Ubat kecemasan diberi','text'],
+    ['selepas','Keadaan selepas','textarea',{ph:'cth: tidur 1 jam, lemah, keliru'}],
+    ['nota','Nota','textarea']
+  ]},
+  profil: { title:'Profil', fields:[
+    ['nama','Nama panggilan','text',{req:1,half:1}],['tarikhLahir','Tarikh lahir','date',{half:1}],
+    ['namaPenuh','Nama penuh','text'],
+    ['hospital','Hospital utama','text'],
+    ['noRujukan','No. MRN / rujukan','text',{half:1}],['telHospital','No. telefon hospital','tel',{half:1}],
+    ['doktor','Jabatan / Doktor','text'],
+    ['keadaan','Keadaan / diagnosis','textarea'],
+    ['alahan','Alahan','text',{ph:'cth: Tiada / Penisilin'}],
+    ['sawanAktif','Ada rekod sawan?','select',{opts:['Ya','Tidak']}],
+    ['ubatKecemasan','Ubat kecemasan sawan (ikut preskripsi)','text',{sz:1}],
+    ['arahanSawan','Arahan doktor bila sawan','textarea',{sz:1,ph:'cth: beri ubat X jika lebih 5 min, terus ke hospital'}],
+    ['kenalan','Kenalan kecemasan','textarea',{ph:'cth: Abah 01x-xxxxxxx'}]
+  ]}
+};
+
+/* ---------- modal ---------- */
+function closeOv(){ document.querySelectorAll('.ov').forEach(o=>o.remove()); }
+function sheet(title, content){
+  closeOv();
+  const ov=el('div',{class:'ov',onclick:e=>{if(e.target===ov)closeOv();}});
+  const sh=el('div',{class:'sheet'}, el('h3',{}, title, el('button',{onclick:closeOv,'aria-label':'Tutup'},'×')), content);
+  ov.append(sh); document.body.append(ov); return sh;
+}
+function confirmBox(msg, okTxt, onOk){
+  const ov=el('div',{class:'ov',style:'align-items:center;z-index:70'});
+  ov.append(el('div',{class:'sheet',style:'border-radius:20px;max-width:360px;margin:16px'},
+    el('p',{style:'font-weight:600;font-size:16px;margin-bottom:4px'},msg),
+    el('div',{class:'btns'}, el('button',{class:'btn',onclick:()=>ov.remove()},'Batal'), el('button',{class:'btn red',onclick:()=>{ov.remove();onOk();}},okTxt))));
+  document.body.append(ov);
+}
+
+function openForm(kind, item, preset){
+  const def=FIELDS[kind]; const isProf=kind==='profil';
+  const v={...(preset||{}),...(item||{})};
+  const form=el('form',{});
+  const inputs={};
+  if(!isProf){
+    const pp=kind==='sawan'&&szPeople().length?szPeople():people();
+    const cur=pp.some(p=>p.id===v.person)?v.person:(pp.some(p=>p.id===S.person)?S.person:pp[0].id);
+    const sel=el('select',{name:'person'}, pp.map(p=>el('option',{value:p.id,selected:p.id===cur},p.nama)));
+    inputs.person=sel;
+    form.append(el('div',{class:'f'},el('label',{},'Untuk siapa'),sel));
+    sel.addEventListener('change',()=>{ if(kind==='temujanji' && !item){ const q=P(sel.value); inputs.hospital.value=q.hospital||''; inputs.jabatan.value=q.jabatanDefault||''; } });
+  }
+  let row=null;
+  def.fields.forEach(([k,label,type,o={}])=>{
+    if(isProf && o.sz && !hasSz(v)) return;
+    let inp;
+    if(type==='select') inp=el('select',{name:k}, o.opts.map(x=>el('option',{value:x,selected:v[k]===x},x)));
+    else if(type==='textarea'){ inp=el('textarea',{name:k,placeholder:o.ph||''}); inp.value=v[k]||''; }
+    else { inp=el('input',{type,name:k,placeholder:o.ph||''}); inp.value=v[k]||''; }
+    inputs[k]=inp;
+    const f=el('div',{class:'f'},el('label',{},label+(o.req?' *':'')),inp);
+    if(o.half){ if(!row){row=el('div',{class:'row2'});form.append(row);} row.append(f); if(row.children.length===2) row=null; }
+    else { row=null; form.append(f); }
+  });
+  if(!item && !isProf){
+    if(inputs.tarikh && !inputs.tarikh.value && kind!=='temujanji') inputs.tarikh.value=todayStr();
+    if(inputs.masa && !inputs.masa.value && (kind==='simptom')) inputs.masa.value=nowTime();
+    if(kind==='temujanji'){ const q=P(inputs.person.value); if(!inputs.hospital.value) inputs.hospital.value=q.hospital||''; if(!inputs.jabatan.value) inputs.jabatan.value=q.jabatanDefault||''; }
+  }
+  const btns=el('div',{class:'btns'});
+  if(item && !isProf) btns.append(el('button',{type:'button',class:'btn del',onclick:()=>confirmBox('Padam rekod ini?','Padam',()=>{closeOv();delItem(item.id);toast('Dipadam');})},'Padam'));
+  btns.append(el('button',{type:'button',class:'btn',onclick:closeOv},'Batal'), el('button',{type:'submit',class:'btn pri'},'Simpan'));
+  form.append(btns);
+  form.addEventListener('submit',e=>{
+    e.preventDefault();
+    const out={};
+    for(const [k,inp] of Object.entries(inputs)) out[k]=inp.value.trim();
+    const missing=def.fields.filter(([k,,,o={}])=>o.req && !out[k]);
+    if(missing.length){ toast('Sila isi: '+missing.map(m=>m[1]).join(', ')); return; }
+    if(isProf){
+      const base=P(v.id);
+      putProfile({...base,...v,...out,id:v.id,warna:base.warna,urutan:base.urutan,updatedAt:Date.now()});
+    } else {
+      putItem({...v,...out,kind,id:v.id||uid(),createdAt:v.createdAt||Date.now(),updatedAt:Date.now()});
+    }
+    closeOv(); toast('Disimpan ✓');
+  });
+  sheet((item?'Kemaskini ':'Tambah ')+def.title+(isProf?' — '+(v.nama||''):''), form);
+}
+
+function openAddMenu(){
+  const opts=[['temujanji','📅','Temujanji'],['ubat','💊','Ubat'],['simptom','🌡️','Simptom'],['sawan','⚡','Rekod sawan (lepas)']];
+  sheet('Tambah rekod', el('div',{class:'tools'}, opts.map(([k,e,t])=>el('button',{onclick:()=>openForm(k)},el('span',{},e),t))));
+}
+
+/* ---------- emergency mode ---------- */
+let emTimer=null;
+function updFab(){ const b=document.getElementById('btnSawan'); const pp=szPeople(); b.style.display=pp.length?'':'none'; b.textContent=pp.length===1?'⚡ SAWAN '+pp[0].nama.toUpperCase():'⚡ SAWAN'; }
+function openSawan(){
+  const pp=szPeople();
+  if(!pp.length){ toast('Tiada ahli dengan rekod sawan. Hidupkan di Profil.'); return; }
+  if(pp.some(p=>p.id===S.person)){ startEm(S.person); return; }
+  if(pp.length>1){
+    sheet('Siapa yang sawan?', el('div',{class:'pick'}, pp.map(p=>el('button',{style:`background:${p.warna}`,onclick:()=>{closeOv();startEm(p.id);}},p.nama))));
+  } else startEm(pp[0].id);
+}
+function startEm(pid){
+  const p=P(pid); const t0=Date.now(); const tStart=nowTime(); const dStart=todayStr();
+  const tm=el('div',{class:'timer'},'00:00');
+  const alertSlot=el('div');
+  const close=()=>{clearInterval(emTimer);wrap.remove();};
+  const planRows=[];
+  if(p.ubatKecemasan) planRows.push(el('p',{},el('b',{},'Ubat kecemasan: '),p.ubatKecemasan));
+  if(p.arahanSawan) planRows.push(el('p',{},el('b',{},'Arahan doktor: '),p.arahanSawan));
+  if(p.alahan) planRows.push(el('p',{},el('b',{},'Alahan: '),p.alahan));
+  if(p.hospital) planRows.push(el('p',{},el('b',{},'Hospital: '),p.hospital+(p.noRujukan?' · MRN '+p.noRujukan:'')));
+  if(p.telHospital) planRows.push(el('p',{},el('b',{},'Tel hospital: '),p.telHospital));
+  if(p.kenalan) planRows.push(el('p',{},el('b',{},'Kenalan: '),p.kenalan));
+  if(!planRows.length) planRows.push(el('p',{style:'color:var(--muted)'},'Belum ada pelan sawan. Isi di tab Profil (ubat kecemasan & arahan doktor).'));
+  const wrap=el('div',{class:'em'}, el('div',{class:'wrap'},
+    el('div',{class:'hd'}, el('b',{},'⚡ SAWAN — '+p.nama.toUpperCase()), el('button',{class:'btn',style:'flex:0;padding:8px 14px',onclick:()=>confirmBox('Tutup tanpa simpan rekod?','Tutup',close)},'Tutup')),
+    tm, el('div',{class:'tsub'},'Bermula '+fmtT(tStart)+' · pemasa sedang berjalan'),
+    alertSlot,
+    el('button',{class:'btn pri',style:'width:100%;margin-top:14px;padding:16px;font-size:16px',onclick:()=>{
+      const sec=Math.round((Date.now()-t0)/1000); clearInterval(emTimer); wrap.remove();
+      openForm('sawan',null,{person:pid,tarikh:dStart,masa:tStart,tempoh:`${Math.floor(sec/60)} min ${sec%60} saat`,ubatDiberi:''});
+    }},'✓ Sawan berhenti — simpan rekod'),
+    el('div',{class:'plan'}, el('h4',{},'Pelan '+p.nama), planRows),
+    el('div',{class:'steps'},
+      el('div',{},'Bertenang. Pemasa sedang mencatat tempoh.'),
+      el('div',{},'Alihkan benda keras/tajam. Lapik kepala dengan sesuatu yang lembut.'),
+      el('div',{},'JANGAN masukkan apa-apa ke dalam mulut. Jangan tahan pergerakan.'),
+      el('div',{},'Bila kejang reda, baringkan mengiring (posisi pemulihan). Longgarkan pakaian di leher.'),
+      el('div',{},'Beri ubat kecemasan HANYA seperti yang diarahkan doktor.'),
+      el('div',{},'Kekal bersama sehingga sedar sepenuhnya. Perhatikan apa yang berlaku untuk dicatat.')
+    ),
+    el('a',{class:'call',href:'tel:999'},'📞 Kecemasan: 999'),
+    el('p',{class:'note'},'Hubungi 999 jika sawan lebih 5 minit, berulang tanpa sedar, susah bernafas, cedera, atau dalam air. Panduan am — ikut arahan doktor anak.')
+  ));
+  document.body.append(wrap);
+  clearInterval(emTimer);
+  emTimer=setInterval(()=>{
+    const s=Math.floor((Date.now()-t0)/1000);
+    tm.textContent=`${pad(Math.floor(s/60))}:${pad(s%60)}`;
+    if(s>=300 && !alertSlot.firstChild){ tm.classList.add('over'); alertSlot.append(el('div',{class:'alert5'},'Lebih 5 minit — hubungi 999 / ikut pelan kecemasan')); }
+  },250);
+}
+
+/* ---------- summary for doctor ---------- */
+function summaryText(pids){
+  const L=[];
+  pids.forEach(pid=>{
+    const p=P(pid);
+    L.push(`=== ${p.namaPenuh||p.nama} ===`);
+    if(p.tarikhLahir) L.push(`Tarikh lahir: ${fmtD(p.tarikhLahir)}`);
+    if(p.hospital) L.push(`Hospital: ${p.hospital}${p.noRujukan?' (MRN '+p.noRujukan+')':''}`);
+    if(p.doktor) L.push(`Jabatan/Doktor: ${p.doktor}`);
+    if(p.keadaan) L.push(`Keadaan: ${p.keadaan}`);
+    if(p.alahan) L.push(`Alahan: ${p.alahan}`);
+    const meds=itemsFor('ubat',pid).filter(m=>m.aktif!=='Tidak');
+    L.push('','Ubat semasa:'); if(!meds.length) L.push('- tiada rekod');
+    meds.forEach(m=>L.push(`- ${m.nama}${m.dos?' '+m.dos:''}${m.kekerapan?', '+m.kekerapan:''}${m.masaMakan?' ('+m.masaMakan+')':''}`));
+    const sz=!hasSz(p)?null:itemsFor('sawan',pid).filter(x=>daysFrom(x.tarikh)>=-90).sort((a,b)=>(b.tarikh+b.masa).localeCompare(a.tarikh+a.masa));
+    if(sz){ L.push('',`Sawan 90 hari lepas: ${sz.length} kali`);
+    sz.slice(0,8).forEach(x=>L.push(`- ${fmtD(x.tarikh)} ${fmtT(x.masa)}${x.tempoh?', '+x.tempoh:''}${x.jenis?': '+x.jenis:''}${x.pencetus?' [pencetus: '+x.pencetus+']':''}`)); }
+    const sy=itemsFor('simptom',pid).filter(x=>daysFrom(x.tarikh)>=-30).sort((a,b)=>b.tarikh.localeCompare(a.tarikh));
+    L.push('',`Simptom 30 hari lepas: ${sy.length}`);
+    sy.slice(0,8).forEach(x=>L.push(`- ${fmtD(x.tarikh)}: ${x.simptom}${x.tahap?' ('+x.tahap+')':''}${x.suhu?', '+x.suhu+'°C':''}`));
+    L.push('','');
+  });
+  return L.join('\n').trim();
+}
+function openSummary(){
+  const pids=S.person==='semua'?people().map(p=>p.id):[S.person];
+  const txt=summaryText(pids);
+  const ta=el('textarea',{style:'width:100%;min-height:300px;padding:12px;border:1.5px solid var(--line);border-radius:12px;font-size:13px;background:#fbfaf7',readonly:true}); ta.value=txt;
+  sheet('Ringkasan untuk doktor', el('div',{}, el('p',{style:'font-size:13px;color:var(--muted);margin-bottom:10px'},'Salin dan tampal ke WhatsApp atau tunjuk kepada doktor semasa temujanji.'), ta,
+    el('div',{class:'btns'}, el('button',{class:'btn pri',onclick:async()=>{try{await navigator.clipboard.writeText(txt);toast('Disalin ✓');}catch(e){ta.select();toast('Tekan lama & pilih Salin');}}},'📋 Salin'))));
+}
+function openAddPerson(){
+  const inp=el('input',{type:'text',placeholder:'Nama panggilan'});
+  const szSel=el('select',{},el('option',{value:'Tidak'},'Tidak'),el('option',{value:'Ya'},'Ya'));
+  sheet('Tambah ahli keluarga', el('form',{onsubmit:e=>{e.preventDefault();const n=inp.value.trim();if(!n)return;
+    const id=n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||uid();
+    if(people().some(p=>p.id===id)){toast('Nama sudah ada');return;}
+    const n0=people().length; putProfile({id,nama:n,warna:PALETTE[n0%PALETTE.length],urutan:n0+1,sawanAktif:szSel.value,updatedAt:Date.now()}); closeOv(); toast('Ditambah ✓');}},
+    el('div',{class:'f'},el('label',{},'Nama'),inp), el('div',{class:'f'},el('label',{},'Ada rekod sawan?'),szSel), el('div',{class:'btns'},el('button',{type:'submit',class:'btn pri'},'Tambah'))));
+}
+
+/* ---------- render pieces ---------- */
+function pTag(pid){const p=P(pid);return el('span',{class:'tag p',style:`background:${p.warna}`},p.nama);}
+function apptCard(a){
+  const d=a.tarikh?pD(a.tarikh):null; const n=a.tarikh?daysFrom(a.tarikh):null;
+  const st=a.status||'Akan datang'; const past=st!=='Akan datang'||(n!=null&&n<0);
+  let stTag=null;
+  if(st==='Akan datang' && n!=null && n>=0) stTag=el('span',{class:'tag '+(n<=1?'today':'soon')},rel(n));
+  else stTag=el('span',{class:'tag '+(st==='Akan datang'?'warn':'done')},st==='Akan datang'?'Belum kemaskini status':st);
+  return el('button',{class:'card item'+(past?' past':''),onclick:()=>openForm('temujanji',a)},
+    el('div',{class:'datebox'}, el('div',{class:'w'},d?HARI[d.getDay()]:''), el('div',{class:'d'},d?d.getDate():'?'), el('div',{class:'m'},d?BULAN[d.getMonth()]+' '+String(d.getFullYear()).slice(2):'')),
+    el('div',{class:'body'},
+      el('div',{class:'t'},a.tujuan||a.jabatan||'Temujanji'),
+      el('div',{class:'s'},[a.hospital,a.jabatan&&a.tujuan?a.jabatan:null].filter(Boolean).join(' · ')),
+      el('div',{class:'s'},[a.masa?'🕐 '+fmtT(a.masa):null,a.doktor?'👩‍⚕️ '+a.doktor:null].filter(Boolean).join('   ')),
+      a.bawa?el('div',{class:'s'},'🎒 '+a.bawa):null,
+      el('div',{},pTag(a.person),stTag)));
+}
+function medCard(m){
+  const n=m.ambilSeterusnya?daysFrom(m.ambilSeterusnya):null;
+  return el('button',{class:'card item'+(m.aktif==='Tidak'?' inactive':''),onclick:()=>openForm('ubat',m)},
+    el('div',{class:'icon ic-med'},'💊'),
+    el('div',{class:'body'},
+      el('div',{class:'t'},m.nama+(m.dos?' · '+m.dos:'')),
+      el('div',{class:'s'},[m.kekerapan,m.masaMakan].filter(Boolean).join(' — ')),
+      m.tujuan?el('div',{class:'s'},m.tujuan):null,
+      el('div',{},pTag(m.person), m.aktif==='Tidak'?el('span',{class:'tag done'},'Dihentikan'):null,
+        n!=null&&m.aktif!=='Tidak'?el('span',{class:'tag '+(n<=7?'warn':'soon')},'Ambil ubat: '+(n<0?'lewat '+(-n)+' hari':rel(n).toLowerCase())):null)));
+}
+function logCard(x){
+  const isSz=x.kind==='sawan';
+  return el('button',{class:'card item',onclick:()=>openForm(x.kind,x)},
+    el('div',{class:'icon '+(isSz?'ic-sz':'ic-sym')},isSz?'⚡':'🌡️'),
+    el('div',{class:'body'},
+      el('div',{class:'t'},isSz?('Sawan'+(x.tempoh?' · '+x.tempoh:'')):x.simptom),
+      el('div',{class:'s'},fmtD(x.tarikh)+(x.masa?', '+fmtT(x.masa):'')+' · '+rel(daysFrom(x.tarikh))),
+      isSz&&x.jenis?el('div',{class:'s'},x.jenis):null,
+      isSz&&x.pencetus?el('div',{class:'s'},'Pencetus: '+x.pencetus):null,
+      !isSz&&x.tindakan?el('div',{class:'s'},x.tindakan):null,
+      el('div',{},pTag(x.person),
+        !isSz&&x.tahap?el('span',{class:'tag sev'+({Ringan:1,Sederhana:2,Teruk:3}[x.tahap]||1)},x.tahap):null,
+        !isSz&&x.suhu?el('span',{class:'tag warn'},x.suhu+'°C'):null,
+        isSz&&x.hospital2==='Ya'?el('span',{class:'tag sev3'},'Ke hospital'):null)));
+}
+const empty=(e,t)=>el('div',{class:'empty'},el('b',{},e),t);
+const byDateAsc=(a,b)=>((a.tarikh||'9')+(a.masa||'')).localeCompare((b.tarikh||'9')+(b.masa||''));
+const byDateDesc=(a,b)=>-byDateAsc(a,b);
+const upcoming=list=>list.filter(a=>(a.status||'Akan datang')==='Akan datang' && a.tarikh && daysFrom(a.tarikh)>=0).sort(byDateAsc);
+
+function viewUtama(){
+  const box=el('div');
+  const pp=S.person==='semua'?people():[P(S.person)];
+  box.append(el('div',{class:'pcards',style:'margin-top:8px'}, pp.map(p=>{
+    const next=upcoming(itemsFor('temujanji',p.id))[0];
+    const meds=itemsFor('ubat',p.id).filter(m=>m.aktif!=='Tidak');
+    const sz=itemsFor('sawan',p.id).sort(byDateDesc);
+    const sz30=sz.filter(x=>daysFrom(x.tarikh)>=-30).length;
+    return el('div',{class:'pcard',style:`background:${p.warna}`,onclick:()=>{S.person=p.id;render();}},
+      el('div',{class:'bubble'}),
+      el('div',{class:'nm'},p.nama),
+      el('div',{class:'hs'},(p.hospital?'🏥 '+p.hospital:'🏥 Hospital belum diisi')+(p.jabatanDefault?' · '+p.jabatanDefault:'')),
+      el('div',{class:'stats'},
+        el('div',{class:'st'},el('b',{},next?rel(daysFrom(next.tarikh)):'—'),el('span',{},next?'Temujanji '+fmtD(next.tarikh).slice(0,-5):'Tiada temujanji')),
+        el('div',{class:'st'},el('b',{},meds.length),el('span',{},'Ubat aktif')),
+        hasSz(p)?el('div',{class:'st'},el('b',{},sz.length?(daysFrom(sz[0].tarikh)===0?'Hari ini':(-daysFrom(sz[0].tarikh))+' hari'):'—'),el('span',{},sz.length?`Sawan terakhir · ${sz30}x/30h`:'Tiada rekod sawan'))
+          :el('div',{class:'st'},el('b',{},itemsFor('simptom',p.id).filter(x=>daysFrom(x.tarikh)>=-30).length),el('span',{},'Simptom 30 hari'))));
+  })));
+  const up=upcoming(items('temujanji')).slice(0,4);
+  box.append(el('h2',{},'Temujanji akan datang',el('button',{onclick:()=>{S.view='temujanji';render();}},'Semua →')));
+  box.append(up.length?el('div',{class:'list'},up.map(apptCard)):empty('📅','Tiada temujanji akan datang. Tekan + untuk tambah.'));
+  const meds=items('ubat').filter(m=>m.aktif!=='Tidak');
+  box.append(el('h2',{},'Ubat harian',el('button',{onclick:()=>{S.view='ubat';render();}},'Semua →')));
+  box.append(meds.length?el('div',{class:'list'},meds.slice(0,5).map(medCard)):empty('💊','Belum ada ubat direkod.'));
+  const logs=[...items('sawan'),...items('simptom')].sort(byDateDesc).slice(0,3);
+  if(logs.length){ box.append(el('h2',{},'Catatan terkini',el('button',{onclick:()=>{S.view='log';render();}},'Semua →'))); box.append(el('div',{class:'list'},logs.map(logCard))); }
+  return box;
+}
+function viewTemujanji(){
+  const all=items('temujanji'); const up=upcoming(all); const upIds=new Set(up.map(a=>a.id));
+  const past=all.filter(a=>!upIds.has(a.id)).sort(byDateDesc);
+  return el('div',{},
+    el('h2',{},'Akan datang ('+up.length+')',el('button',{onclick:()=>openForm('temujanji')},'+ Tambah')),
+    up.length?el('div',{class:'list'},up.map(apptCard)):empty('📅','Tiada temujanji akan datang.'),
+    past.length?el('h2',{},'Lepas / selesai ('+past.length+')'):null,
+    past.length?el('div',{class:'list'},past.map(apptCard)):null);
+}
+function viewUbat(){
+  const all=items('ubat'); const act=all.filter(m=>m.aktif!=='Tidak'); const stop=all.filter(m=>m.aktif==='Tidak');
+  return el('div',{},
+    el('h2',{},'Sedang diambil ('+act.length+')',el('button',{onclick:()=>openForm('ubat')},'+ Tambah')),
+    act.length?el('div',{class:'list'},act.map(medCard)):empty('💊','Belum ada ubat direkod.'),
+    stop.length?el('h2',{},'Dihentikan ('+stop.length+')'):null,
+    stop.length?el('div',{class:'list'},stop.map(medCard)):null);
+}
+function viewLog(){
+  const f=S.logF;
+  let list=[...(f!=='simptom'?items('sawan'):[]),...(f!=='sawan'?items('simptom'):[])].sort(byDateDesc);
+  const seg=el('div',{class:'seg'},[['semua','Semua'],['sawan','⚡ Sawan'],['simptom','🌡️ Simptom']].map(([k,t])=>el('button',{class:f===k?'on':'',onclick:()=>{S.logF=k;render();}},t)));
+  const sz=items('sawan'); const s30=sz.filter(x=>daysFrom(x.tarikh)>=-30).length; const s90=sz.filter(x=>daysFrom(x.tarikh)>=-90).length;
+  return el('div',{},
+    el('div',{class:'card',style:'margin-top:8px;display:grid;grid-template-columns:repeat(3,1fr);text-align:center;gap:6px'},
+      el('div',{},el('div',{style:'font-size:22px;font-weight:800;color:var(--red)'},s30),el('div',{class:'s',style:'font-size:12px;color:var(--muted)'},'Sawan 30 hari')),
+      el('div',{},el('div',{style:'font-size:22px;font-weight:800'},s90),el('div',{style:'font-size:12px;color:var(--muted)'},'Sawan 90 hari')),
+      el('div',{},el('div',{style:'font-size:22px;font-weight:800;color:var(--amber)'},items('simptom').filter(x=>daysFrom(x.tarikh)>=-30).length),el('div',{style:'font-size:12px;color:var(--muted)'},'Simptom 30 hari'))),
+    el('h2',{},'Log kesihatan',el('button',{onclick:()=>openForm(f==='sawan'?'sawan':'simptom')},'+ Tambah')),
+    seg, el('div',{style:'height:10px'}),
+    list.length?el('div',{class:'list'},list.map(logCard)):empty('📝','Belum ada catatan.'));
+}
+function viewProfil(){
+  const pp=S.person==='semua'?people():[P(S.person)];
+  const box=el('div',{});
+  box.append(el('h2',{},'Alat'));
+  box.append(el('div',{class:'tools'},
+    el('button',{onclick:openSummary},el('span',{},'📋'),'Ringkasan untuk doktor'),
+    el('button',{onclick:openAddPerson},el('span',{},'➕'),'Tambah ahli keluarga'),
+    el('button',{onclick:doBackup},el('span',{},'💾'),'Simpan sandaran'),
+    el('button',{onclick:doRestore},el('span',{},'📥'),'Pulihkan sandaran')));
+  const lb=lastBackup();
+  box.append(el('p',{class:'note',style:'margin-top:8px'},lb?'Sandaran terakhir: '+fmtD(new Date(lb-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10)):'Belum pernah buat sandaran.'));
+  box.append(el('h2',{},'Profil'));
+  pp.forEach(p=>{
+    const rows=FIELDS.profil.fields.filter(([k,,,o={}])=>k!=='nama'&&k!=='sawanAktif'&&!(o.sz&&!hasSz(p))).map(([k,label,type])=>{
+      let val=p[k]; if(!val) return null; if(type==='date') val=fmtD(val);
+      return el('div',{class:'prow'},el('span',{},label),el('b',{},val));
+    }).filter(Boolean);
+    box.append(el('div',{class:'card',style:'margin-bottom:12px'},
+      el('div',{class:'phead'},el('div',{class:'av',style:`background:${p.warna}`},initial(p.nama)),el('div',{class:'nm'},p.nama),el('button',{onclick:()=>openForm('profil',null,p)},'Edit')),
+      rows.length?rows:el('p',{style:'color:var(--muted);font-size:14px'},'Belum diisi. Tekan Edit untuk isi hospital, doktor, alahan & pelan sawan.')));
+  });
+  box.append(el('p',{class:'note'},'Data disimpan dalam telefon ini sahaja — tiada sesiapa lain boleh lihat. Buat sandaran selalu (hantar ke WhatsApp/emel sendiri). Jangan padam data browser. Arahan ubat & sawan ikut nasihat doktor.'));
+  return box;
+}
+
+/* ---------- main render ---------- */
+const VIEWS=[['utama','🏠','Utama',viewUtama],['temujanji','📅','Temujanji',viewTemujanji],['ubat','💊','Ubat',viewUbat],['log','📝','Log',viewLog],['profil','👤','Profil',viewProfil]];
+function render(){
+  if(S.person!=='semua' && !people().some(p=>p.id===S.person)) S.person='semua';
+  const chips=document.getElementById('chips'); chips.textContent='';
+  chips.append(el('button',{class:'chip'+(S.person==='semua'?' on':''),onclick:()=>{S.person='semua';render();}},'Semua'));
+  people().forEach(p=>chips.append(el('button',{class:'chip'+(S.person===p.id?' on':''),onclick:()=>{S.person=p.id;render();}},el('span',{class:'av',style:`background:${p.warna}`},initial(p.nama)),p.nama)));
+  const nav=document.getElementById('nav'); nav.textContent='';
+  VIEWS.forEach(([k,e,t])=>nav.append(el('button',{class:S.view===k?'on':'',onclick:()=>{S.view=k;render();window.scrollTo(0,0);}},el('span',{class:'e'},e),t)));
+  updFab(); backupBanner();
+  const main=document.getElementById('main'); main.textContent='';
+  main.append(VIEWS.find(v=>v[0]===S.view)[3]());
+}
+
+document.getElementById('btnSawan').addEventListener('click',openSawan);
+document.getElementById('btnAdd').addEventListener('click',()=>{
+  const map={temujanji:'temujanji',ubat:'ubat'};
+  if(map[S.view]) openForm(map[S.view]); else if(S.view==='log') openForm(S.logF==='sawan'?'sawan':'simptom'); else openAddMenu();
+});
+init();
+})();
+</script>
+</body>
+</html>
